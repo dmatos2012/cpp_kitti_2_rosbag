@@ -10,6 +10,16 @@
 #include <pcl_ros/point_cloud.h>
 #include <time.h>
 #include <cpp_kitti_2_bag/date.h>
+#include <tf2_msgs/TFMessage.h>
+#include <tf/tfMessage.h>
+
+#include "cpp_kitti_2_bag/kitti_transforms.h"
+
+
+
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::system_clock;
 
 namespace fs = std::experimental::filesystem;
 
@@ -19,6 +29,11 @@ std::vector <std::string> extractVeloFiles(std::string rootPath)
 
     for (const auto & entry : fs::directory_iterator(rootPath + "/data"))
         veloFiles.push_back(entry.path());
+
+    std::sort(veloFiles.begin(), veloFiles.end(),
+              [](const auto& lhs, const auto& rhs) {
+                  return lhs < rhs;
+              });
     return veloFiles;
         // std::cout << entry.path() << std::endl;
 
@@ -34,13 +49,7 @@ std::vector <std::string> extractTimestamps(std::string rootPath)
     
     while (getline(file, line))
     {
-        std::istringstream sline(line);
-        while(sline>>date>>time)
-        {
-            timestamps.push_back(time);
-            // std::cout<<date<<time<<std::endl;
-        }
-
+        timestamps.push_back(line);
     }
     return timestamps;
 
@@ -83,45 +92,68 @@ ros::Time timestampToRos(uint64_t timestamp_ns, ros::Time* time)
 {
     time->fromNSec(timestamp_ns);
 
+
 }
 
-uint64_t touint64(std::string time_string) 
+// uint64_t touint64(std::string time_string) 
+// {
+//     uint64_t time_ros;
+//     std::istringstream iss(time_string);
+//     iss >> time_ros;
+//     return time_ros;
+
+// }
+
+int64_t stampToTime(std::string timestamp)
 {
-    uint64_t time_ros;
-    std::istringstream iss(time_string);
-    iss >> time_ros;
-    return time_ros;
+    system_clock::time_point tp;
+    std::istringstream ss(timestamp);
+    ss >> date::parse("%F %T", tp);
+    using date::operator<<;
+    // std::cout << "Date/Time is " << tp << std::endl;
+    int64_t nanosec_since_epoch = duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+    // auto nanosec_since_epoch = duration_cast<nano>(tp.time_since_epoch()).count();
+  
+    std::cout<<nanosec_since_epoch;
+    return nanosec_since_epoch; 
+
+}
+
+void exportTf()
+{
 
 }
 
 
 int main()
 {
-    using std::chrono::duration_cast;
-    using std::chrono::milliseconds;
-    using std::chrono::system_clock;
-    std::chrono::system_clock::time_point tp;
-    std::istringstream ss{"2011-09-26 13:02:44.317412775"};
-    ss >> date::parse("%F %T", tp);
-    using date::operator<<;
-    std::cout << "Date/Time is " << tp << std::endl;
-    auto millisec_since_epoch = duration_cast<milliseconds>(tp.time_since_epoch()).count();
-    std::cout<<millisec_since_epoch;
-    struct tm timeDate;
+
+    Eigen::MatrixXf tfVelo;
+    std::string filename = "./data/2011_09_26/calib_imu_to_velo.txt";
+    tfVelo = calibVeloImu(filename);
+    Eigen::Quaternionf quaternion(tfVelo.topLeftCorner<3,3>()); //for rotations
+    // Quaternionf quaternion(tfVelo); //for rotations
+
+    Eigen::MatrixXf t = tfVelo.topRightCorner<3,1>(); //translations
+    fs::path rootDir = fs::current_path().root_path();
+    fs::path DataDir = rootDir / DataDir;
+    std::cout<<rootDir<<std::endl;
+    std::cout<<DataDir<<std::endl;
+    fs::path bagFile = "test6.bag";
+    // struct tm timeDate;
     rosbag::Bag bag_;
-    bag_.open("./src/cpp_kitti_2_bag/data/test2.bag", rosbag::bagmode::Write);
+    bag_.open("./data/test10.bag", rosbag::bagmode::Write);
     std::string velo_frame_id = "velo_link";
     std::string pointcloud_topic = "/kitti/velo";
     uint64_t ts;
-    char time_buffer[100];
     ros::Time timestamp_ros;
     pcl::PointCloud<pcl::PointXYZI> pointcloud;
-    std::string rootPath = "/home/david/catkin_ws/src/cpp_kitti_2_bag/data/2011_09_26/2011_09_26_drive_0002_sync/velodyne_points";
+    std::string rootPath = "/home/david/catkin_ws/src/cpp_kitti_2_bag/data/2011_09_26/2011_09_26_drive_0011_sync/velodyne_points";
     std::string timestampFile = rootPath + "/timestamps.txt";
     std::vector <std::string> veloFiles = extractVeloFiles(rootPath);
     std::vector <std::string> timestamps = extractTimestamps(timestampFile);
 
-    for (int i=0; i<4;i++)
+    for (int i=0; i<veloFiles.size();i++)
     {
         if (getPointCloud(veloFiles[i], &pointcloud))
                
@@ -131,17 +163,29 @@ int main()
         {
             std::cout<<"Error opening file";
         }
-        strptime(timestamps[i].c_str(), "%H:%M:%S.%f", &timeDate);
-        strftime(time_buffer, 50, "%s", &timeDate);
-        // std::cout<<"timedate"<<timeDate<<std::endl;
-    
-        ts = touint64(timestamps[i]);
-        timestampToRos(ts, &timestamp_ros);
-        pointcloud.header.stamp = ts;
+        // strptime(timestamps[i].c_str(), "%H:%M:%S.%f", &timeDate);
+        // strftime(time_buffer, 50, "%s", &timeDate);
+        // // std::cout<<"timedate"<<timeDate<<std::endl;
+        
+        ts = stampToTime(timestamps[i]); //nanoseconds
+        timestampToRos(ts, &timestamp_ros); //nanoseconds  
+        tf2_msgs::TFMessage tfm;
+        tfm.transforms.push_back(getStaticTransform(t, quaternion));
+        tfm.transforms[0].header.stamp = timestamp_ros;
+        std::cout<<"timestamp ros"<<timestamp_ros<<std::endl;
+        bag_.write("/tf_static", timestamp_ros, tfm);
+
+        // Pointclouds
+        pointcloud.header.stamp = ts/1000; //since value in microseconds.
         pointcloud.header.frame_id = velo_frame_id;
         bag_.write(pointcloud_topic, timestamp_ros, pointcloud);
         
+
+
     }
+    
+    // POSSIBLY NEED TO DELETE. JUST TESTING
+
     bag_.close();
     
     // uint64_t time = pcl_conversions::toPCL(ros::Time::now(), pointcloud.header.stamp)
