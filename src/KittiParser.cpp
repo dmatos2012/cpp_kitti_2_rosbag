@@ -26,7 +26,6 @@ KittiParser::KittiParser(const fs::path veloPoints, const fs::path timestampsFil
 }
 
 
-
 std::vector <std::string> KittiParser::extractVeloFiles()
 {
     std::vector <std::string> veloFiles;
@@ -39,8 +38,6 @@ std::vector <std::string> KittiParser::extractVeloFiles()
                 return lhs < rhs;
             });
     return veloFiles;
-        // std::cout << entry.path() << std::endl;
-
 
 }
 
@@ -56,12 +53,6 @@ std::vector <std::string> KittiParser::extractTimestamps()
         timestamps.push_back(line);
     }
     return timestamps;
-
-    // for (const auto & entry : fs::directory_iterator(rootPath))
-    //     timestamps.push_back(entry.path());
-    // return timestamps;
-    //     // std::cout << entry.path() << std::endl;
-
 
 }
 
@@ -105,10 +96,8 @@ int64_t KittiParser::parseStamp(std::string timestamp)
     system_clock::time_point tp;
     std::istringstream ss(timestamp);
     ss >> date::parse("%F %T", tp);
-    using date::operator<<;
-    // std::cout << "Date/Time is " << tp << std::endl;
+    // using date::operator<<;
     int64_t nanosec_since_epoch = duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
-    // auto nanosec_since_epoch = duration_cast<nano>(tp.time_since_epoch()).count();
     return nanosec_since_epoch; 
 
 }

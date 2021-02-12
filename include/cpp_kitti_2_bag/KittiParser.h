@@ -16,9 +16,6 @@ public:
     const std::string imuFrameId = "imu_link";
     const std::string pointCloudTopic = "/kitti/velo";
     const std::string tfTopic = "/tf_static";
-    // const fs::path m_rootPath = fs::current_path().root_path();
-    // const fs::path m_dataPath = "/data/2011_09_26/2011_09_26_drive_0011_sync";
-    // const fs::path m_veloPointsDir = "velodyne_points";
 
     KittiParser(const fs::path rootPath, const fs::path timeStampsFilename);
 
@@ -31,20 +28,6 @@ public:
 private:
     fs::path m_veloPointsPath;
     fs::path m_timeStampsFile;
-    
-
-
-    
-
-//double check class.h constructor 
-    // KittiParser(fs::path calibrationFilename, fs::path dataPath);
-    
-    // const fs::path veloCalibFilename = "calib_imu_to_velo.txt";
-    // const fs::path timeStampsFilename = "timestamps.txt";
-    
-    
-
-
 
 };
 #endif

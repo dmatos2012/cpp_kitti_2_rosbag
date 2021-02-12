@@ -43,32 +43,17 @@ include
 )
 
 ## Declare a C++ library
-add_library(hi
+add_library(kitti_convert_bag
   src/KittiParser.cpp
   src/KittiTransforms.cpp
 )
 
-target_link_libraries(hi stdc++fs  ${catkin_LIBRARIES})
-
-
-#add_executable(parser src/KittiParser.cpp)
-#target_link_libraries(parser stdc++fs ${catkin_LIBRARIES} ${PROJECT_NAME})
-
-#add_executable(transform src/KittiTransforms.cpp)
-#target_link_libraries(transform ${catkin_LIBRARIES})
-
+target_link_libraries(kitti_convert_bag stdc++fs  ${catkin_LIBRARIES})
 
 add_executable(main src/main.cpp)
-target_link_libraries(main hi stdc++fs ${catkin_LIBRARIES})
+target_link_libraries(main kitti_convert_bag stdc++fs ${catkin_LIBRARIES})
 
 
-
-
-
-
-
-#set_property(TARGET parser PROPERTY CXX_STANDARD 17)
-#set_property(TARGET parser PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 

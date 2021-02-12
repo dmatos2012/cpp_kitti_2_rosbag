@@ -11,33 +11,20 @@
 namespace fs = std::experimental::filesystem;
 using namespace std;
 
-
-    
-    // KittiParser::KittiParser parser{rootPath, veloPointsPath};
-
-
-
-void writeVeloBag(rosbag::Bag *bag_, KittiParser &parser, string veloFile, string timeStamp, string outBag)
+void writeVeloBag(rosbag::Bag *bag_, KittiParser &parser, string veloFile, string timeStamp)
 {
      pcl::PointCloud<pcl::PointXYZI> pointcloud;
-    //  rosbag::Bag bag_;
-    //  bag_.open("./data/" + outBag, rosbag::bagmode::Write);
      ros::Time timeStampRos;
-
-    
-
     if (parser.getPointCloud(veloFile, &pointcloud))
     {
         uint64_t parsedStamp = parser.parseStamp(timeStamp); 
         parser.timestampToRos(parsedStamp, &timeStampRos);
         pointcloud.header.stamp = parsedStamp/1000; //since value in microseconds.
         pointcloud.header.frame_id = parser.veloFrameId;
-        // bag_.write(parser.pointCloudTopic, timeStampRos, pointcloud);
         bag_->write(parser.pointCloudTopic, timeStampRos, pointcloud);
 
 
     }
-    // bag_.close();
     
 }
 
@@ -49,10 +36,23 @@ void writeTf(rosbag::Bag *bag_, geometry_msgs::TransformStamped tf_msg, ros::Tim
     bag_->write("/tf_static", timeStampRos, tfm);
 }
 
+void progressBar(int progress, int amountFiles)
+{
+    string progressArrow = ">";
+   
+    int percent = (100 * (progress + 1)) / amountFiles;
+ 
+    cout << "\r" << "[" << progressArrow.insert(0, percent/5, '-') << std::string(100 / 5 - percent / 5, ' ') << "]";
+    cout.flush();
+
+
+
+}
+
 int main()
 {
     rosbag::Bag bag_;
-    bag_.open("test1.bag", rosbag::bagmode::Write);
+    
     tf2_msgs::TFMessage tfm;
     
 
@@ -73,20 +73,20 @@ int main()
     geometry_msgs::TransformStamped tf_msg = tfKitti.getStaticTransform(t, quaternion);
     ros::Time timeStampRos;
 
-    
+    bag_.open(rootPath.string() + "/" + bagOutName, rosbag::bagmode::Write);
 
-
+    int progress = 0;
     for (auto const& i : boost::combine(veloFiles, timestamps))
     {
         string veloFile;
         string timeStamp;
         boost::tie(veloFile,timeStamp) = i;
-        // writeVeloBag(parser, veloFile, timeStamp, bagOutName); //can i make it const?
-        writeVeloBag(&bag_, parser, veloFile, timeStamp, bagOutName); //can i make it const?
-
         uint64_t parsedStamp = parser.parseStamp(timeStamp); 
         parser.timestampToRos(parsedStamp, &timeStampRos);
+        writeVeloBag(&bag_, parser, veloFile, timeStamp); 
         writeTf(&bag_, tf_msg, timeStampRos, tfm);
+        progressBar(progress, veloFiles.size());
+        progress++;
     }
     bag_.close();
     return 0;

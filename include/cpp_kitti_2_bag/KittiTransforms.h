@@ -26,10 +26,7 @@ private:
     const fs::path timeStampsFilename = "timestamps.txt";
     
 public:
-    KittiTransforms();
-    // KittiTransforms(const fs::path veloFilename = "calib_imu_to_velo.txt", const fs::path filename = "timestamps.txt");
-    // KittiTransforms();
-    
+    KittiTransforms();    
     geometry_msgs::TransformStamped getStaticTransform(Eigen::MatrixXf t, Eigen::Quaternionf quaternion);
     Eigen::MatrixXf extractTf(std::string filename);
     Eigen::Matrix4f inv(Eigen::Matrix3f R, Eigen::MatrixXf t, Eigen::Matrix4f &tfVelo);

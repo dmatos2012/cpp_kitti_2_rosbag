@@ -14,25 +14,15 @@ using namespace Eigen;
 namespace fs = std::experimental::filesystem;
 
 
-
 const std::string veloFrameId = "velo_link";
 const std::string imuFrameId = "imu_link";
 const std::string pointCloudTopic = "/kitti/velo";
 const std::string tfTopic = "/tf_static";
 const fs::path m_veloCalibFilename = "calib_imu_to_velo.txt";
 const fs::path m_timeStampsFilename = "timestamps.txt";
-    
 
 KittiTransforms::KittiTransforms() = default; //constructor 
 
-    
-    // default values only needed for declaration, not definition. 
-    // KittiTransforms(fs::path VeloCalibFilename, fs::path timeStampsFilename)
-    // : m_veloCalibFilename{VeloCalibFilename},
-    //  m_timeStampsFilename(timeStampsFilename)
-    // {
-    // }
-    
 MatrixXf KittiTransforms::extractTf(string filename)
 {
     string line;
@@ -56,12 +46,9 @@ MatrixXf KittiTransforms::extractTf(string filename)
     Matrix3f RMat = Map<Matrix<float,3,3>>(R.data()).transpose(); //to make it like np.reshape
     vector <float> t{tokens.begin()+9,tokens.end()};
     MatrixXf tMat = Map<Matrix<float,3,1>>(t.data());
-    // MatrixXf tfVelo(RMat.rows(), RMat.cols()+tMat.cols());
     Matrix4f tfVelo(4,4);
 
     KittiTransforms::inv(RMat, tMat, tfVelo); //tMat
-
-    // tfVelo << RMat, tMat; // 3 x 4 matrix
     return tfVelo;
 }
 

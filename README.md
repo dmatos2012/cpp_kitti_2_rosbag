@@ -14,5 +14,7 @@ A C++ project that I have used to further expand my C++ knowledge, and apply wha
 ## Usage
 `rosrun cpp_kitti_2_bag main`
 
+which will create the rosbag in your root folder.
+
 ## Acknowledgements
-Heavily inspired by the existing tools to convert from raw dataset to KITTI bag, for[Python](https://github.com/tomas789/kitti2bag)  and for [C++](https://github.com/ethz-asl/kitti_to_rosbag) implementation
+Heavily inspired by the existing tools to convert from raw dataset to KITTI bag, for [Python](https://github.com/tomas789/kitti2bag)  and for [C++](https://github.com/ethz-asl/kitti_to_rosbag) implementation
