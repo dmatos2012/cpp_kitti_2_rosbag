@@ -16,17 +16,23 @@ public:
     const std::string imuFrameId = "imu_link";
     const std::string pointCloudTopic = "/kitti/velo";
     const std::string tfTopic = "/tf_static";
-    const fs::path m_rootPath = fs::current_path().root_path();
-    const fs::path m_dataPath = "/data/2011_09_26/2011_09_26_drive_0011_sync";
-    const fs::path m_veloPointsDir = "velodyne_points";
+    // const fs::path m_rootPath = fs::current_path().root_path();
+    // const fs::path m_dataPath = "/data/2011_09_26/2011_09_26_drive_0011_sync";
+    // const fs::path m_veloPointsDir = "velodyne_points";
 
-    KittiParser(const fs::path rootPath, const fs::path veloPointsDir);
-    
-    int64_t stampToTime(std::string timestamp);
+    KittiParser(const fs::path rootPath, const fs::path timeStampsFilename);
+
+    int64_t parseStamp(std::string timestamp);
     ros::Time timestampToRos(uint64_t timestamp_ns, ros::Time* time);
     bool getPointCloud(std::string veloFile, pcl::PointCloud<pcl::PointXYZI>* ptcloud);
-    std::vector <std::string> extractTimestamps(std::string rootPath);
-    std::vector <std::string> extractVeloFiles(std::string rootPath);
+    std::vector <std::string> extractTimestamps();
+    std::vector <std::string> extractVeloFiles();
+
+private:
+    fs::path m_veloPointsPath;
+    fs::path m_timeStampsFile;
+    
+
 
     
 
@@ -37,7 +43,7 @@ public:
     // const fs::path timeStampsFilename = "timestamps.txt";
     
     
-// private:
+
 
 
 };
