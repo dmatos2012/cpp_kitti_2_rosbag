@@ -12,15 +12,6 @@
 using namespace std;
 using namespace Eigen;
 namespace fs = std::experimental::filesystem;
-
-
-const std::string veloFrameId = "velo_link";
-const std::string imuFrameId = "imu_link";
-const std::string pointCloudTopic = "/kitti/velo";
-const std::string tfTopic = "/tf_static";
-const fs::path m_veloCalibFilename = "calib_imu_to_velo.txt";
-const fs::path m_timeStampsFilename = "timestamps.txt";
-
 KittiTransforms::KittiTransforms() = default; //constructor 
 
 MatrixXf KittiTransforms::extractTf(string filename)
@@ -67,10 +58,8 @@ Matrix4f KittiTransforms::inv(Matrix3f R, MatrixXf t, Matrix4f &tfVelo)
 geometry_msgs::TransformStamped KittiTransforms::getStaticTransform(MatrixXf t, Quaternionf quaternion)
 {
     geometry_msgs::TransformStamped tf_msg;
-    string velo_frame_id = "velo_link";
-    string imu_frame_id = "imu_link";
-    tf_msg.header.frame_id = imu_frame_id;
-    tf_msg.child_frame_id = velo_frame_id;
+    tf_msg.header.frame_id = "imu_link";
+    tf_msg.child_frame_id = "velo_link";
     tf_msg.transform.translation.x = t(0);
     tf_msg.transform.translation.y = t(1);
     tf_msg.transform.translation.z = t(2);

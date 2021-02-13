@@ -87,6 +87,7 @@ bool KittiParser::getPointCloud(std::string veloFile, pcl::PointCloud<pcl::Point
 ros::Time KittiParser::timestampToRos(uint64_t timestamp_ns, ros::Time* time)
 {
     time->fromNSec(timestamp_ns);
+    return *time;
 
 
 }

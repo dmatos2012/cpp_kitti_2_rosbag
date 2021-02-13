@@ -13,9 +13,7 @@ class KittiParser
 {
 public:
     const std::string veloFrameId = "velo_link";
-    const std::string imuFrameId = "imu_link";
     const std::string pointCloudTopic = "/kitti/velo";
-    const std::string tfTopic = "/tf_static";
 
     KittiParser(const fs::path rootPath, const fs::path timeStampsFilename);
 

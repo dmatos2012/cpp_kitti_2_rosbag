@@ -17,14 +17,6 @@ namespace fs = std::experimental::filesystem;
 
 class KittiTransforms
 {
-private:
-    const std::string veloFrameId = "velo_link";
-    const std::string imuFrameId = "imu_link";
-    const std::string pointCloudTopic = "/kitti/velo";
-    const std::string tfTopic = "/tf_static";
-    const fs::path veloCalibFilename = "calib_imu_to_velo.txt";
-    const fs::path timeStampsFilename = "timestamps.txt";
-    
 public:
     KittiTransforms();    
     geometry_msgs::TransformStamped getStaticTransform(Eigen::MatrixXf t, Eigen::Quaternionf quaternion);
